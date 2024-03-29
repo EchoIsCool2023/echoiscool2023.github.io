@@ -1,0 +1,22 @@
+* {
+    font-family: "Quicksand",sans-serif;
+    text-align: center;
+    text-decoration: solid rgba(0, 255, 255, 0.418) wavy 10px;
+}
+li {
+    font-weight: bold;
+}
+#resultime {
+    padding: 20px 20px 20px 20px;
+    border: 5px solid rgb(0, 0, 0);
+    background-color: rgb(255, 140, 0);
+}
+#resultime:hover {
+    background-color: rgb(179, 100, 3);
+}
+a {
+    text-decoration: none;
+}
+.Contact {
+    padding: 20px 20px 20px 20px;
+}
