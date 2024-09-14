@@ -1,0 +1,12 @@
+{
+    "name": "myTeardrop",
+    "icons": [
+        {
+            "src": "./play/icons/512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": "./play/index.html?pwa=true",
+    "display": "fullscreen"
+}
