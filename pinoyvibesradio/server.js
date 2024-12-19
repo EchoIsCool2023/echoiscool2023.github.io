@@ -8,7 +8,7 @@ let currentSong = {
     songName: "Despacito",
     currentTime: 0,
     duration: 192,
-    artworkUrl: "https://example.com/despacito-artwork.png",
+    artworkUrl: "echoiscool2023.github.io/pinoyvibesradio/PinoyVibesRadio-Logo.png",
     listeners: 0
 };
 
@@ -36,6 +36,11 @@ wss.on("connection", (ws) => {
 
     // Send current song info to the new client
     ws.send(JSON.stringify(currentSong));
+
+    // Listen for messages from the client (optional)
+    ws.on("message", (message) => {
+        console.log("Received message from client:", message);
+    });
 
     // Handle client disconnect
     ws.on("close", () => {

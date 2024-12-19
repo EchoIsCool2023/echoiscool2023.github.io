@@ -6,7 +6,7 @@
     <title>Pinoy Vibes Radio</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Segoe, "Segoe UI";
             margin: 0;
             padding: 0;
             background-color: #f4f4f9;
@@ -18,10 +18,10 @@
             padding: 20px;
         }
         .song-art {
-            width: 150px;
-            height: 150px;
+            width: 300px;
+            height: 300px;
             margin: 20px auto;
-            background-color: #ddd;
+            background-color: #f4f4f9;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -34,18 +34,18 @@
             transition: transform 0.5s ease-in-out;
         }
 
-		.bop {
-			animation: bopEffect 0.3s ease-in-out;
-		}
+        .bop {
+            animation: bopEffect 0.3s ease-in-out;
+        }
 
-		@keyframes bopEffect {
-			0%, 100% {
-				transform: scale(1);
-			}
-			50% {
-				transform: scale(1.2);
-			}
-		}
+        @keyframes bopEffect {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
 
         .progress-bar {
             width: 100%;
@@ -102,60 +102,87 @@
 <body>
     <div class="container">
         <div class="song-art">
-            <img src="placeholder.png" alt="PinoyVibesRadio Logo">
+            <img src="PinoyVibesRadio-Logo.png" alt="PinoyVibesRadio Logo" id="radioLogo">
         </div>
         <div class="progress-bar">
-            <div class="progress" style="width: 60%;"></div>
+            <div class="progress" id="progress"></div>
         </div>
         <div class="song-info">
-            <span>Song Name [scrolling]</span>
+            <span id="song-name">Song Name [scrolling]</span>
             <br>
-            <span>0:41 / 3:12</span>
+            <span id="current-time">0:00</span> / <span id="duration">3:12</span>
         </div>
         <div class="listeners">
-            People Listening: 1
+            People Listening: <span id="listeners-count">0</span>
         </div>
         <div class="playlist">
             <div class="playlist-item">
-                <img src="placeholder.png" alt="Follow us on Facebook!">
+                <img src="PinoyVibesRadio-Logo.png" alt="Follow us on Facebook!">
                 <div class="song-name">Follow us on Facebook!</div>
             </div>
             <div class="playlist-item">
-                <img src="placeholder.png" alt="Song Thumbnail">
+                <img src="PinoyVibesRadio-Logo.png" alt="Song Thumbnail">
                 <div class="song-name">Subscribe to us on Youtube!</div>
             </div>
             <div class="playlist-item">
-                <img src="placeholder.png" alt="Song Thumbnail">
+                <img src="PinoyVibesRadio-Logo.png" alt="Song Thumbnail">
                 <div class="song-name">Download the app on the Google Play Store!</div>
             </div>
         </div>
+
+        <audio id="audioPlayer" preload="auto">
+            <source src="Despacito.mp3" type="audio/mp3">
+        </audio>
     </div>
 
-<script>
-    // Wait until the DOM is fully loaded
-    document.addEventListener("DOMContentLoaded", function () {
-        const logo = document.getElementById("radioLogo"); // Logo element
-        const audio = document.getElementById("audioPlayer"); // Audio element
+    <script>
+        // WebSocket connection
+        const ws = new WebSocket("ws://localhost:8080");
 
-        // Check if elements exist
-        if (!logo || !audio) {
-            console.error("Missing logo or audio element!");
-            return;
+        // Get elements
+        const logo = document.getElementById("radioLogo");
+        const audio = document.getElementById("audioPlayer");
+        const progressBar = document.getElementById("progress");
+        const currentTimeDisplay = document.getElementById("current-time");
+        const durationDisplay = document.getElementById("duration");
+        const songNameDisplay = document.getElementById("song-name");
+        const listenersCountDisplay = document.getElementById("listeners-count");
+
+        // Sync audio time and updates from server
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            // Update song info
+            songNameDisplay.innerText = data.songName;
+            durationDisplay.innerText = formatTime(data.duration);
+            listenersCountDisplay.innerText = data.listeners;
+
+            // Sync the audio progress
+            const progressPercentage = (data.currentTime / data.duration) * 100;
+            progressBar.style.width = progressPercentage + "%";
+            currentTimeDisplay.innerText = formatTime(data.currentTime);
+
+            // Sync audio play if needed
+            if (audio.paused && audio.currentTime !== data.currentTime) {
+                audio.currentTime = data.currentTime;
+            }
+        };
+
+        // Format time as mm:ss
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
         }
 
-        // Add bopping animation on every second
-        audio.addEventListener("timeupdate", () => {
-            const currentTime = Math.floor(audio.currentTime);
-            if (currentTime % 1 === 0) {
-                // Trigger animation
-                logo.classList.add("bop");
-
-                // Remove animation after it's done
-                setTimeout(() => logo.classList.remove("bop"), 300);
+        // Play audio only after user interaction
+        document.body.addEventListener('click', function() {
+            if (audio.paused) {
+                audio.play().catch((error) => {
+                    console.error('Audio play failed:', error);
+                });
             }
         });
-    });
-</script>
-
+    </script>
 </body>
 </html>
