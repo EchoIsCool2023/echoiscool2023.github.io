@@ -119,7 +119,7 @@
     <button onclick="sendSequence()">Update Playback Sequence</button>
 
     <script>
-        const ws = new WebSocket("ws://https://websocket-server-ptp5.onrender.com"); // Update to your WebSocket server URL
+        const ws = new WebSocket("wss://websocket-server-ptp5.onrender.com");
 
         function sendSequence() {
             const input = document.getElementById("sequenceInput").value;
@@ -137,7 +137,7 @@
     </script>
 
     <script>
-        const socket = new WebSocket('ws://https://websocket-server-ptp5.onrender.com'); // Replace with your WebSocket server address
+        const ws = new WebSocket("wss://websocket-server-ptp5.onrender.com");
         let categories = {};
 
         const categoriesList = document.getElementById('categories-list');
