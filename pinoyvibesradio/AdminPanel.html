@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinoy Vibes Radio Admin Panel</title>
+    <style>
+        body {
+            font-family: Segoe, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .categories, .songs {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .list-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-item button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+
+        <!-- Add Category Section -->
+        <div class="form-group">
+            <label for="new-category">Add New Category</label>
+            <input type="text" id="new-category" placeholder="Enter category name">
+            <button onclick="addCategory()">Add Category</button>
+        </div>
+
+        <!-- Add Song Section -->
+        <div class="form-group">
+            <label for="song-name">Song Name</label>
+            <input type="text" id="song-name" placeholder="Enter song name">
+            
+            <label for="song-url">Song URL</label>
+            <input type="text" id="song-url" placeholder="Enter song URL">
+            
+            <label for="category-select">Select Category</label>
+            <select id="category-select">
+                <option value="">-- Select a Category --</option>
+            </select>
+            <button onclick="addSong()">Add Song</button>
+        </div>
+
+        <!-- Categories List -->
+        <div class="categories">
+            <h3>Categories</h3>
+            <div id="categories-list"></div>
+        </div>
+
+        <!-- Songs List -->
+        <div class="songs">
+            <h3>Songs</h3>
+            <div id="songs-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Replace with your WebSocket server address
+        let categories = {};
+
+        const categoriesList = document.getElementById('categories-list');
+        const songsList = document.getElementById('songs-list');
+        const categorySelect = document.getElementById('category-select');
+
+        // WebSocket event listeners
+        socket.addEventListener('open', () => {
+            console.log('Connected to WebSocket server.');
+            // Request initial data
+            socket.send(JSON.stringify({ type: 'getData' }));
+        });
+
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'updateData') {
+                categories = data.categories || {};
+                updateCategories();
+                updateSongs();
+            }
+        });
+
+        socket.addEventListener('close', () => {
+            console.log('Disconnected from WebSocket server.');
+        });
+
+        // Add a category
+        function addCategory() {
+            const newCategory = document.getElementById('new-category').value.trim();
+            if (newCategory && !categories[newCategory]) {
+                categories[newCategory] = [];
+                socket.send(JSON.stringify({ type: 'addCategory', category: newCategory }));
+                document.getElementById('new-category').value = '';
+            } else {
+                alert('Category name is either empty or already exists.');
+            }
+        }
+
+        // Add a song
+        function addSong() {
+            const songName = document.getElementById('song-name').value.trim();
+            const songUrl = document.getElementById('song-url').value.trim();
+            const selectedCategory = document.getElementById('category-select').value;
+
+            if (songName && songUrl && selectedCategory) {
+                socket.send(JSON.stringify({ 
+                    type: 'addSong', 
+                    category: selectedCategory, 
+                    song: { name: songName, url: songUrl }
+                }));
+                document.getElementById('song-name').value = '';
+                document.getElementById('song-url').value = '';
+            } else {
+                alert('Please fill all fields and select a category.');
+            }
+        }
+
+        // Update categories UI
+        function updateCategories() {
+            categoriesList.innerHTML = '';
+            categorySelect.innerHTML = '<option value="">-- Select a Category --</option>';
+
+            for (const category in categories) {
+                // Create category list item
+                const div = document.createElement('div');
+                div.classList.add('list-item');
+                div.innerHTML = `
+                    <span>${category}</span>
+                    <button onclick="removeCategory('${category}')">Remove</button>
+                `;
+                categoriesList.appendChild(div);
+
+                // Add to category dropdown
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            }
+        }
+
+        // Update songs UI
+        function updateSongs() {
+            songsList.innerHTML = '';
+
+            for (const category in categories) {
+                categories[category].forEach((song, index) => {
+                    const div = document.createElement('div');
+                    div.classList.add('list-item');
+                    div.innerHTML = `
+                        <span>${song.name} (Category: ${category})</span>
+                        <button onclick="removeSong('${category}', ${index})">Remove</button>
+                    `;
+                    songsList.appendChild(div);
+                });
+            }
+        }
+
+        // Remove a category
+        function removeCategory(category) {
+            if (confirm(`Are you sure you want to remove category "${category}"? This will also remove all its songs.`)) {
+                socket.send(JSON.stringify({ type: 'removeCategory', category }));
+            }
+        }
+
+        // Remove a song
+        function removeSong(category, index) {
+            if (confirm(`Are you sure you want to remove this song from "${category}"?`)) {
+                socket.send(JSON.stringify({ type: 'removeSong', category, index }));
+            }
+        }
+    </script>
+</body>
+</html>

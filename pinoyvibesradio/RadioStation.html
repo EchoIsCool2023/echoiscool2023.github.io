@@ -1,93 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pinoy Vibes Radio</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 20px;
-    }
-    #progress {
-      width: 80%;
-      height: 20px;
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 20px auto;
-      position: relative;
-    }
-    #progress-bar {
-      height: 100%;
-      background: #007bff;
-      width: 0%;
-      transition: width 0.5s;
-    }
-    .info {
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinoy Vibes Radio</title>
+    <style>
+        body {
+            font-family: Segoe, "Segoe UI";
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .song-art {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            background-color: #f4f4f9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .song-art img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .bop {
+            animation: bopEffect 0.3s ease-in-out;
+        }
+
+        @keyframes bopEffect {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .progress {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .song-info {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .listeners {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .playlist {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .playlist-item {
+            width: 80%;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .playlist-item img {
+            width: 40px;
+            height: 40px;
+            background-color: #ddd;
+            border-radius: 4px;
+        }
+        .playlist-item .song-name {
+            flex: 1;
+            margin-left: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-  <h1>🎵 Pinoy Vibes Radio 🎵</h1>
-  <p id="song-title">Now Playing: <strong>Loading...</strong></p>
-  <audio id="audio" controls autoplay></audio>
-  <div id="progress">
-    <div id="progress-bar"></div>
-  </div>
-  <div class="info">
-    <span id="time">0:00 / 0:00</span> | 
-    <span id="listeners">Listeners: 0</span>
-  </div>
+    <div class="container">
+        <div class="song-art">
+            <img src="PinoyVibesRadio-Logo.png" alt="PinoyVibesRadio Logo" id="radioLogo">
+        </div>
+        <div class="progress-bar">
+            <div class="progress" id="progress-bar"></div>
+        </div>
+        <div class="song-info">
+            <span id="song-title">Now Playing: Loading...</span>
+            <br>
+            <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+        </div>
+        <div class="listeners">
+            People Listening: <span id="listeners-count">0</span>
+        </div>
+        <div class="playlist">
+            <div class="playlist-item">
+                <img src="PinoyVibesRadio-Logo.png" alt="Follow us on Facebook!">
+                <div class="song-name">Follow us on Facebook!</div>
+            </div>
+            <div class="playlist-item">
+                <img src="PinoyVibesRadio-Logo.png" alt="Song Thumbnail">
+                <div class="song-name">Subscribe to us on Youtube!</div>
+            </div>
+            <div class="playlist-item">
+                <img src="PinoyVibesRadio-Logo.png" alt="Song Thumbnail">
+                <div class="song-name">Download the app on the Google Play Store!</div>
+            </div>
+        </div>
 
-  <script>
-    // WebSocket connection
-    const ws = new WebSocket("ws://https://websocket-server-ptp5.onrender.com");
+        <audio id="audio" preload="auto" controls autoplay></audio>
+    </div>
 
-    // DOM elements
-    const songTitle = document.getElementById("song-title");
-    const audio = document.getElementById("audio");
-    const progressBar = document.getElementById("progress-bar");
-    const timeDisplay = document.getElementById("time");
-    const listenersDisplay = document.getElementById("listeners");
+    <script>
+        const ws = new WebSocket("ws://https://websocket-server-ptp5.onrender.com");
 
-    // State variables
-    let duration = 0;
+        // DOM elements
+        const audio = document.getElementById("audio");
+        const progressBar = document.getElementById("progress-bar");
+        const currentTimeDisplay = document.getElementById("current-time");
+        const durationDisplay = document.getElementById("duration");
+        const songTitleDisplay = document.getElementById("song-title");
+        const listenersCountDisplay = document.getElementById("listeners-count");
 
-    ws.onopen = () => {
-      console.log("Connected to WebSocket server");
-    };
+        ws.onopen = () => console.log("Connected to WebSocket");
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
 
-      // Update song info
-      songTitle.innerHTML = `Now Playing: <strong>${data.songName}</strong>`;
-      if (audio.src !== data.artworkUrl) {
-        audio.src = data.artworkUrl; // Assuming this is the audio file URL
-      }
+            // Update song and listeners info
+            songTitleDisplay.textContent = `Now Playing: ${data.songName}`;
+            listenersCountDisplay.textContent = data.listeners;
 
-      // Update progress and time
-      duration = data.duration;
-      const currentTime = data.currentTime;
-      progressBar.style.width = `${(currentTime / duration) * 100}%`;
-      timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+            // Sync the audio progress
+            const progressPercentage = (data.currentTime / data.duration) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            currentTimeDisplay.textContent = formatTime(data.currentTime);
+            durationDisplay.textContent = formatTime(data.duration);
 
-      // Update listeners
-      listenersDisplay.textContent = `Listeners: ${data.listeners}`;
-    };
+            // Sync audio
+            if (audio.src !== data.artworkUrl) {
+                audio.src = data.artworkUrl;
+            }
+        };
 
-    ws.onclose = () => {
-      console.log("Disconnected from WebSocket server");
-    };
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+        }
 
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-    }
-  </script>
+        document.body.addEventListener("click", () => {
+            if (audio.paused) {
+                audio.play().catch((error) => console.error("Audio play failed:", error));
+            }
+        });
+    </script>
 </body>
 </html>
