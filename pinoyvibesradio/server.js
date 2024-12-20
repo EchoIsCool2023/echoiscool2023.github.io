@@ -77,14 +77,16 @@ wss.on("connection", (ws) => {
     // Send current song info and playback sequence to the new client
     ws.send(JSON.stringify({ type: "nowPlaying", song: currentSong }));
     ws.send(JSON.stringify({ type: "playbackSequence", sequence: playbackSequence }));
-
+	
     ws.on("message", (message) => {
         const data = JSON.parse(message);
 
-        // Handle admin updates for playback sequence
-        if (data.type === "playbackSequence") {
-            playbackSequence = data.sequence;
-            console.log("Updated playback sequence:", playbackSequence);
+        if (data.type === "admin") {
+            // Handle admin messages, like adding songs
+            console.log("Admin action received:", data.action);
+        } else if (data.type === "listener") {
+            // Handle listener updates
+            console.log("Listener update received");
         }
     });
 
