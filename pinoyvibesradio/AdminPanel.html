@@ -105,9 +105,39 @@
             <div id="songs-list"></div>
         </div>
     </div>
+	
+	  <h1>Playback Sequence</h1>
+    <textarea id="sequenceInput" rows="10" cols="50">
+{
+  "sequence": [
+    { "category": "Songs", "count": 3 },
+    { "category": "Break Audios", "count": 1 }
+  ]
+}
+    </textarea>
+    <br>
+    <button onclick="sendSequence()">Update Playback Sequence</button>
 
     <script>
-        const socket = new WebSocket('ws://localhost:8080'); // Replace with your WebSocket server address
+        const ws = new WebSocket("ws://https://websocket-server-ptp5.onrender.com"); // Update to your WebSocket server URL
+
+        function sendSequence() {
+            const input = document.getElementById("sequenceInput").value;
+            try {
+                const message = {
+                    type: "playbackSequence",
+                    ...JSON.parse(input),
+                };
+                ws.send(JSON.stringify(message));
+                alert("Playback sequence sent!");
+            } catch (e) {
+                alert("Invalid JSON format.");
+            }
+        }
+    </script>
+
+    <script>
+        const socket = new WebSocket('ws://https://websocket-server-ptp5.onrender.com'); // Replace with your WebSocket server address
         let categories = {};
 
         const categoriesList = document.getElementById('categories-list');
